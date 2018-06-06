@@ -34,7 +34,7 @@ echo "start.sh run successful."
 ```
 3. Known issues
 * OS environment
-** pandas library error had occured in my home
+  ** pandas library error had occured in my home
 4. Required items
 * Docker for running python codes with PHP
-**e.g.: https://hub.docker.com/r/electop/cartographer_ros/
+  **e.g.: https://hub.docker.com/r/electop/cartographer_ros/
