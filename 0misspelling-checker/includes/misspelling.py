@@ -5,15 +5,12 @@ import sys
 import time
 import pandas as pd
 from bs4 import BeautifulSoup
-from selenium import webdriver
 from enchant import DictWithPWL
 from urllib.request import urlopen
 from urllib.request import Request
 from pandas import Series, DataFrame
 from enchant.checker import SpellChecker
 from urllib.error import URLError, HTTPError
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.options import Options
 
 inputname, outputname, logname = 'input.csv', 'output.csv', 'output.log'
 # The most common file types and file extensions
@@ -93,14 +90,9 @@ if __name__ == '__main__':
     chkr = SpellChecker("en_US")
     result = DataFrame(columns=('misspelling', 'duplication', 'wiki', 'wikiurl', 'url', 'sentence' ))
     excludedwords = 'www,href,http,https,html,br'
-    chrome_options = Options()
-    chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--window-size=1920x1080')
-    chrome_options.add_argument('disable-gpu')
-    chrome_options.add_argument(useragent)
+    f = open(logname, 'w')
 
     if init():
-        f = open(logname, 'w')
         df = pd.read_csv(inputname)
         print (df.to_string())
         for link in df['link']:
@@ -134,8 +126,6 @@ if __name__ == '__main__':
                         output = output + '\n' + adding
                         rows = [str(err.word), -1, -1, '', link, text]
                         result.loc[len(result)] = rows
-        f.write(output)
-        f.close()
         # Counting for duplicated misspellings
         for rowdata in result.values:
             if rowdata[1] == -1:	# rowdata[1]: duplication
@@ -145,33 +135,39 @@ if __name__ == '__main__':
                 continue
         # Getting values from Wikipedia
         print ('\n + Finding words misspelled on Wikipedia')
-        browser = webdriver.Chrome(chrome_options=chrome_options)
-        browser.implicitly_wait(3)
-        browser.get('https://en.wikipedia.org/wiki/Main_Page')
         for rowdata in result.values:
-            #time.sleep(0.2)
+            time.sleep(0.2)
             if rowdata[1] < 3 and rowdata[2] == -1:	# rowdata[2]: wiki 
-                word = rowdata[0] + Keys.RETURN
-                browser.find_element_by_id('searchInput').send_keys(word)
-                page = browser.page_source
-                soup = BeautifulSoup(page, 'html.parser')
+                tu = 'https://en.wikipedia.org/w/index.php?search=' + rowdata[0]
+                req = Request(tu)
+                req.add_header('User-Agent', useragent)
+                targetpage = urlopen(req)
+                soup = BeautifulSoup(targetpage, 'lxml')
                 if len(soup.findAll('a', attrs={'href': re.compile('/wiki/Wikipedia:Articles_for_creation')})) > 0:
                     result.loc[result['misspelling'] == rowdata[0], 'wiki'] = False
-                    result.loc[result['misspelling'] == rowdata[0], 'wikiurl'] = browser.current_url
-                    print ('[ERR] %s: Not found' %(rowdata[0]))
-                    print (' + Link: %s' %browser.current_url)
+                    #result.loc[result['misspelling'] == rowdata[0], 'wikiurl'] = browser.current_url
+                    result.loc[result['misspelling'] == rowdata[0], 'wikiurl'] = targetpage.geturl()
+                    messages = '[ERR] ' + rowdata[0] + ': Not found\n + Link: ' + targetpage.geturl()
+                    print (messages)
+                    output = output + '\n' + messages
                 else:
                     result.loc[result['misspelling'] == rowdata[0], 'wiki'] = True
-                    result.loc[result['misspelling'] == rowdata[0], 'wikiurl'] = browser.current_url
-                    print ('[OK] %s: Found' %(rowdata[0]))
-                    print (' + Link: %s' %browser.current_url)
-        browser.quit()
+                    #result.loc[result['misspelling'] == rowdata[0], 'wikiurl'] = browser.current_url
+                    result.loc[result['misspelling'] == rowdata[0], 'wikiurl'] = targetpage.geturl()
+                    messages = '[OK] ' + rowdata[0] + ': Found\n + Link: ' + targetpage.geturl()
+                    print (messages)
+                    output = output + '\n' + messages
         # Sorting result values
         result.sort_values(by=['duplication', 'wiki', 'misspelling', 'url'], ascending=[True, True, True, True], inplace=True)
         result.index = range(len(result))
         # Exporting to csv file
         result.to_csv(outputname, header=True, index=True)
         print (result.to_string())
-
+        output = output + '\n' + result.to_string()
     else:
-        print ('[ERR] Initialization faliure')
+        messages = '[ERR] Initialization faliure'
+        print (messages)
+        output = output + '\n' + messages
+
+    f.write(output)
+    f.close()
