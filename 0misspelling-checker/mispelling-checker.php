@@ -193,9 +193,32 @@ function wp_misspelling_checker() {
 <td>'.$user_information.'</td></tr>
 </table><br>
 ';
-                        $command = '/home/electop/anaconda3/bin/python3.6 /var/www/html/wp-content/plugins/0misspelling-checker/includes/test.py -U root -P qwer1234!@ -H 127.0.0.1 -D wp_utt';
-			$message = exec($command, $out, $status);
-                        print_r($message);
+			//$command = 'bash /var/www/html/wp-content/plugins/0misspelling-checker/includes/exec.sh';
+			//$command = '/usr/bin/sudo python3.5 /var/www/html/wp-content/plugins/0misspelling-checker/includes/misspelling.py -i /var/www/html/wp-content/plugins/0misspelling-checker/includes/input.csv -o /var/www/html/result/output.csv -l /var/www/html/result/output.log';
+			//$command = 'pwd';
+			//$message = exec($command, $out, $status);
+                        //$message = shell_exec($command);
+			//$message = shell_exec('/bin/bash /var/www/html/wp-content/plugins/0misspelling-checker/includes/exec.sh');
+			//$message = shell_exec($command);
+			//$message = system($command);
+			//print_r($message);
+
+			$descriptorspec = array(
+			   0 => array("pipe", "r"),
+			   1 => array("pipe", "w"),
+			   2 => array("file", "./result/error-output.txt", "a"),
+			);
+			$process = proc_open('/usr/bin/sudo /var/www/html/wp-content/plugins/0misspelling-checker/includes/start.sh', $descriptorspec, $pipes);
+
+			if (is_resource($process)) {
+				fwrite($pipes[0]);
+				while(!feof($pipes[1])) {
+					echo fgets($pipes[1], 1024);
+				}
+				fclose($pipes[1]);
+				$return_value = proc_close($process);
+				echo "command returned $return_value\n";
+			}
 			$html .= '<h6>Your request was successfully submitted. Thanks!!</h6>';
 
 			// $html .= '<meta http-equiv="refresh" content="3; url='.get_permalink().'">';
