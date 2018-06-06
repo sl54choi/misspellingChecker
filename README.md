@@ -32,3 +32,9 @@ cd /var/www/html/result
 /usr/bin/python3.5 /var/www/html/wp-content/plugins/0misspelling-checker/includes/misspelling.py -i input.csv -o output.csv -l output.log
 echo "start.sh run successful."
 ```
+3. Known issues
+* OS environment
+** pandas library error had occured in my home
+4. Required items
+* Docker for running python codes with PHP
+**e.g.: https://hub.docker.com/r/electop/cartographer_ros/
