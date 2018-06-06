@@ -1,5 +1,4 @@
 # misspellingChecker for WordPress
----------------------------------------------------
 *※ This guidance is based on Python 3.5.*
 1. Prerequisites
 * user define
