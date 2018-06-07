@@ -7,13 +7,10 @@ Author: Juhwan Yoo
 Version: 1.0
 Author URI: http://localhost/
 */
-
 global $jal_db_version;
 $jal_db_version = '1.0';
-
 register_activation_hook (__FILE__, 'jal_misspelling_install');
 function jal_misspelling_install() {
-
 	global $wpdb;
 	$table_name = $wpdb->prefix . 'misspelling';
 	$charset_collate = $wpdb->get_charset_collate();
@@ -55,40 +52,27 @@ function jal_misspelling_install() {
 		dbDelta( $sql );
 		update_option( "jal_db_version", $jal_db_version );
 	}
-
 }
-
 register_activation_hook(__FILE__, 'wp_contact_activation');
 function wp_contact_activation() {
-
 }
-
 register_deactivation_hook(__FILE__, 'wp_contact_deactivation');
 function wp_contact_deactivation() {
-
 }
-
 /*
 add_action('wp_enqueue_scripts', 'fwds_scripts');
 function fwds_scripts() {
-
 	wp_register_script('input', plugins_url('js/index.js', __FILE__));
 	wp_enqueue_script('input');
-
 }
 */
-
 add_action('wp_enqueue_scripts', 'fwds_misspelling_styles');
 function fwds_misspelling_styles() {
-
 	wp_register_style('style', plugins_url('css/style.css', __FILE__));
 	wp_enqueue_style('style');
-
 }
-
 add_shortcode('my_misspelling', 'wp_misspelling_checker');
 function wp_misspelling_checker() {
-
 	if ( is_user_logged_in() ) {
 		$current_time = current_time('mysql');
 		$current_user = wp_get_current_user();
@@ -114,7 +98,7 @@ function wp_misspelling_checker() {
 </form>
 ';
 */
-
+		$button = 'Please wait';
 		$html = '
 <form action="#v_form" method="post" id="v_form">
 <h3>Required data</h3>
@@ -147,7 +131,7 @@ function wp_misspelling_checker() {
 <td align="center"><label for="user_information">user information</label></td>
 <td><input type="text" width="100%" name="user_information" id="user_information" value="'.$current_user->mo_ldap_local_custom_attribute_displayname.'" /></td></tr>
 </table>
-<input type="submit" name="submit_form" value="submit" /><br>
+<input type="submit" name="submit_form" onClick="this.style.visibility=\'hidden\'" value="submit" /><br>
 </form>
 ';
 		ob_start();
@@ -165,6 +149,7 @@ function wp_misspelling_checker() {
 			$user_information = strip_tags($_POST["user_information"], "");
 			$target_url = strip_tags($_POST["target_url"], "");
     			$html = '
+<br>
 <br><h3>Submitted data</h3>
 <table width="100%" bgcolor="grey" cellpadding="1">
 <tr bgcolor="white">
@@ -191,38 +176,10 @@ function wp_misspelling_checker() {
 <tr bgcolor="white">
 <td align="center" width="20%">user information</td>
 <td>'.$user_information.'</td></tr>
-</table><br>
+</table>
 ';
-			//$command = 'bash /var/www/html/wp-content/plugins/0misspelling-checker/includes/exec.sh';
-			//$command = '/usr/bin/sudo python3.5 /var/www/html/wp-content/plugins/0misspelling-checker/includes/misspelling.py -i /var/www/html/wp-content/plugins/0misspelling-checker/includes/input.csv -o /var/www/html/result/output.csv -l /var/www/html/result/output.log';
-			//$command = 'pwd';
-			//$message = exec($command, $out, $status);
-                        //$message = shell_exec($command);
-			//$message = shell_exec('/bin/bash /var/www/html/wp-content/plugins/0misspelling-checker/includes/exec.sh');
-			//$message = shell_exec($command);
-			//$message = system($command);
-			//print_r($message);
-
-			$descriptorspec = array(
-			   0 => array("pipe", "r"),
-			   1 => array("pipe", "w"),
-			   2 => array("file", "./result/error-output.txt", "a"),
-			);
-			$process = proc_open('/usr/bin/sudo /var/www/html/wp-content/plugins/0misspelling-checker/includes/start.sh', $descriptorspec, $pipes);
-
-			if (is_resource($process)) {
-				fwrite($pipes[0]);
-				while(!feof($pipes[1])) {
-					echo fgets($pipes[1], 1024);
-				}
-				fclose($pipes[1]);
-				$return_value = proc_close($process);
-				echo "command returned $return_value\n";
-			}
-			$html .= '<h6>Your request was successfully submitted. Thanks!!</h6>';
-
-			// $html .= '<meta http-equiv="refresh" content="3; url='.get_permalink().'">';
 			global $wpdb;
+			$count = 0;
 			$table_name = $wpdb->prefix . 'misspelling';
 			$wpdb->insert( 
 				$table_name, 
@@ -237,6 +194,38 @@ function wp_misspelling_checker() {
 					'target_url' => $target_url,
 				)
 			);
+			$html .= '<h6>Your request was successfully submitted and completed. Thanks!!</h6>';
+			// $html .= '<meta http-equiv="refresh" content="3; url='.get_permalink().'">';
+			$descriptorspec = array(
+				0 => array("pipe", "r"),
+				1 => array("pipe", "w"),
+				2 => array("file", "./result/error-output.txt", "a"),
+			);
+			$process = proc_open('/usr/bin/sudo /var/www/html/wp-content/plugins/0misspelling-checker/includes/start.sh', $descriptorspec, $pipes);
+			echo '<h3>Result</h3>';
+			if (is_resource($process)) {
+				fwrite($pipes[0]);
+				while(!feof($pipes[1])) {
+					$message = fgets($pipes[1], 1024);
+					if (strpos($message, 'Not found') !== False) {
+						echo nl2br($message);
+						$count += 1;
+					}
+				}
+				fclose($pipes[1]);
+				$return_value = proc_close($process);
+				$message = "[END] Command returned $return_value";
+				if ($count == 0) {
+					$message .= ": There is no error.";
+				}
+				else if ($count == 1) {
+					$message .= ": There is $count error.";
+				}
+				else {
+					$message .= ": There are $count errors.";
+				}
+				echo nl2br($message);
+			}
 		}
 		// if the form is submitted but the name is empty
 		if ( isset( $_POST["submit_form"] ) && $_POST["target_url"] == "" ) {
@@ -250,5 +239,4 @@ function wp_misspelling_checker() {
 		echo $login;
 	}
 }
-
 ?>
