@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 __author__ = 'electopx@gmail.com'
 
 import re
@@ -27,7 +29,45 @@ def cleanhtml(text):
 
 def unescape(text):
 
-    text = text.replace('&amp;', '&').replace('&quot;', '"').replace('&apos;', "'").replace('&lt;', '<').replace('&gt;', '>')
+    text = text.replace('&amp;', '&').\
+    replace('&quot;', '"').\
+    replace('&apos;', "'").\
+    replace('&lt;', '<').\
+    replace('&gt;', '>').\
+    replace('&nbsp;', ' ')
+
+    return text
+
+def unicode2ascii(text):
+
+    text = text.replace('\\xe2\\x80\\x99', "'").\
+    replace('\\xc2\\xa0', ' ').\
+    replace('\\xc3\\xa9', 'e').\
+    replace('\\xe2\\x80\\x90', '-').\
+    replace('\\xe2\\x80\\x91', '-').\
+    replace('\\xe2\\x80\\x92', '-').\
+    replace('\\xe2\\x80\\x93', '-').\
+    replace('\\xe2\\x80\\x94', '-').\
+    replace('\\xe2\\x80\\x94', '-').\
+    replace('\\xe2\\x80\\x98', "'").\
+    replace('\\xe2\\x80\\x9b', "'").\
+    replace('\\xe2\\x80\\x9c', '"').\
+    replace('\\xe2\\x80\\x9c', '"').\
+    replace('\\xe2\\x80\\x9d', '"').\
+    replace('\\xe2\\x80\\x9e', '"').\
+    replace('\\xe2\\x80\\x9f', '"').\
+    replace('\\xe2\\x80\\xa6', '...').\
+    replace('\\xe2\\x80\\xb2', "'").\
+    replace('\\xe2\\x80\\xb3', "'").\
+    replace('\\xe2\\x80\\xb4', "'").\
+    replace('\\xe2\\x80\\xb5', "'").\
+    replace('\\xe2\\x80\\xb6', "'").\
+    replace('\\xe2\\x80\\xb7', "'").\
+    replace('\\xe2\\x81\\xba', "+").\
+    replace('\\xe2\\x81\\xbb', "-").\
+    replace('\\xe2\\x81\\xbc', "=").\
+    replace('\\xe2\\x81\\xbd', "(").\
+    replace('\\xe2\\x81\\xbe', ")")
 
     return text
 
@@ -107,14 +147,14 @@ if __name__ == '__main__':
             soup = BeautifulSoup(page, 'lxml')
             output = output + '\n* ' + link
             for text in soup.findAll('p'):
-                text = unescape(" ".join(cleanhtml(str(text)).split()))
+                text = unicode2ascii(unescape(" ".join(cleanhtml(str(text.encode('utf8'))).split())))
                 if len(text) == 0:
                     continue
-                if text[0] != '"':
-                    text = '"' + text
-                if text[len(text) - 1] != '"':
-                    text = text + '"'
-                output = output + '\n + ' + text
+                #if text[0] != '"':
+                #    text = '"' + text
+                #if text[len(text) - 1] != '"':
+                #    text = text + '"'
+                output = output + '\n + ' + text[3:-2]
                 print ('\n + Link: %s' %link)
                 print (' + Content: %s' %text)
                 chkr.set_text(text)
@@ -124,7 +164,7 @@ if __name__ == '__main__':
                         adding = '[ERR] (' + str(count) + ') ' + str(err.word)
                         print ('%s' %adding)
                         output = output + '\n' + adding
-                        rows = [str(err.word), -1, -1, '', link, text]
+                        rows = [str(err.word), -1, -1, '', link, text[3:-2]]
                         result.loc[len(result)] = rows
         # Counting for duplicated misspellings
         for rowdata in result.values:
@@ -147,9 +187,10 @@ if __name__ == '__main__':
                     result.loc[result['misspelling'] == rowdata[0], 'wiki'] = False
                     #result.loc[result['misspelling'] == rowdata[0], 'wikiurl'] = browser.current_url
                     result.loc[result['misspelling'] == rowdata[0], 'wikiurl'] = targetpage.geturl()
-                    messages = '[ERR] ' + rowdata[0] + ': Not found\n + Link: ' + targetpage.geturl()
-                    print (messages)
+                    messages = '[ERR] ' + rowdata[0] + ': Not found';
                     output = output + '\n' + messages
+                    messages = messages + ' @ <a href="' + targetpage.geturl() + '" target="_blank">' + targetpage.geturl() + '</a>';
+                    print (messages)
                 else:
                     result.loc[result['misspelling'] == rowdata[0], 'wiki'] = True
                     #result.loc[result['misspelling'] == rowdata[0], 'wikiurl'] = browser.current_url
@@ -162,8 +203,8 @@ if __name__ == '__main__':
         result.index = range(len(result))
         # Exporting to csv file
         result.to_csv(outputname, header=True, index=True)
-        print (result.to_string())
-        output = output + '\n' + result.to_string()
+        #print (result.to_string())
+        #output = output + '\n' + result.to_string()
     else:
         messages = '[ERR] Initialization faliure'
         print (messages)
