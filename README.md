@@ -14,6 +14,9 @@ www-data	ALL=(ALL) NOPASSWD: /var/www/html/wp-content/plugins/0misspelling-check
 ```
 * sudo define: /etc/sudoders.d/mysudoers
 ```
+# User privilege specification
+...
+www-data	ALL=(ALL:ALL) ALL
 www-data	ALL=(ALL) NOPASSWD: /var/www/html/wp-content/plugins/0misspelling-checker/includes/start.sh, /var/www/html/wp-content/plugins/0misspelling-checker/includes/misspelling.py
 ```
 2. References
