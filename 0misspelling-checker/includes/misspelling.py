@@ -14,7 +14,8 @@ from pandas import Series, DataFrame
 from enchant.checker import SpellChecker
 from urllib.error import URLError, HTTPError
 
-inputname, outputname, logname = 'input.csv', 'output.csv', 'output.log'
+inputfile = False
+inputname, outputname, logname, targeturl = '', 'output.csv', 'output.log', ''
 # The most common file types and file extensions
 excludedfiles = '.aif.cda.mid.mp3.mpa.ogg.wav.wma.wpl.7z.arj.deb.pkg.rar.rpm.tar.z.zip.bin.dmg.iso.toa.vcd.csv.dat.db.log.mdb.sav.sql.tar.xml.apk.bat.bin.cgi.com.exe.gad.jar.py.wsf.fnt.fon.otf.ttf.ai.bmp.gif.ico.jpe.png.ps.psd.svg.tif.asp.cer.cfm.cgi.js.jsp.par.php.py.rss.key.odp.pps.ppt.ppt.c.cla.cpp.cs.h.jav.sh.swi.vb.ods.xlr.xls.xls.bak.cab.cfg.cpl.cur.dll.dmp.drv.icn.ico.ini.lnk.msi.sys.tmp.3g2.3gp.avi.flv.h26.m4v.mkv.mov.mp4.mpg.rm.swf.vob.wmv.doc.odt.pdf.rtf.tex.txt.wks.wpd'
 #useragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.117 Safari/537.36"
@@ -95,7 +96,7 @@ def getCode(tu):
 
 def init():
 
-    global inputname, outputname, logname
+    global inputname, outputname, logname, targeturl
     args = sys.argv[0:]
     optionLen = len(args)
 
@@ -104,17 +105,21 @@ def init():
         if args[i].upper() == '-I':	# -I: input file name
             data = str(args[i+1])
             inputname = data
+            inputfile = True
         elif args[i].upper() == '-O':	# -O: output file name
             data = str(args[i+1])
             outputname = data
         elif args[i].upper() == '-L':	# -L: log file name
             data = str(args[i+1])
             logname = data
-
-    if inputname.find('.csv') < 0:
-        print ('[ERR] Please use ".csv" as the extension of input file')
+        elif args[i].upper() == '-T':	# -T: target URL
+            data = str(args[i+1])
+            targeturl = data
+            inputfile = False
+    if inputname == '' or targeturl == '':
+        print ('[ERR] Please be sure to include either the input file or the target url.')
         return False
-    elif outputname.find('.csv') < 0:
+    if outputname.find('.csv') < 0:
         print ('[ERR] Please use ".csv" as the extension of output file.')
         return False
     elif logname.find('.log') < 0:
@@ -133,8 +138,13 @@ if __name__ == '__main__':
     f = open(logname, 'w')
 
     if init():
-        df = pd.read_csv(inputname)
-        print (df.to_string())
+        df = DataFrame(columns=('link', 'code'))
+        if inputfile:
+            df = pd.read_csv(inputname)
+            print (df.to_string())
+        else:
+            rows = {'link': targeturl, 'code': -1}
+            df = df.append(rows, ignore_index=True)
         for link in df['link']:
             tokens = link.split('/')
             lasttoken = tokens[len(tokens) - 1]
@@ -146,17 +156,21 @@ if __name__ == '__main__':
             #page = urlopen(link)
             soup = BeautifulSoup(page, 'lxml')
             output = output + '\n* ' + link
-            for text in soup.findAll('p'):
-                text = unicode2ascii(unescape(" ".join(cleanhtml(str(text.encode('utf8'))).split())))
+            sentences = soup.findAll({'p', 'article', 'span'})
+            for sentence in sentences:
+                #text = unicode2ascii(unescape(" ".join(cleanhtml(str(text.encode('utf8')))).split()))
+                #text = sentence.get_text(' ', strip=True).encode('utf-8').strip().decode('utf-8')
+                text = sentence.get_text(' ', strip=True)
                 if len(text) == 0:
                     continue
-                #if text[0] != '"':
-                #    text = '"' + text
-                #if text[len(text) - 1] != '"':
-                #    text = text + '"'
-                output = output + '\n + ' + text[3:-2]
                 print ('\n + Link: %s' %link)
-                print (' + Content: %s' %text)
+                if type(text) != 'unicode':
+                    mtext = unicode2ascii(str(text.encode('utf-8')))
+                    output = output + '\n + ' + mtext
+                    print (' + Content: %s' %mtext)
+                else:
+                    output = output + '\n + ' + text
+                    print (' + Content: %s' %(text))
                 chkr.set_text(text)
                 for err in chkr:
                     if excludedwords.find(str(err.word)) < 0:
@@ -164,7 +178,7 @@ if __name__ == '__main__':
                         adding = '[ERR] (' + str(count) + ') ' + str(err.word)
                         print ('%s' %adding)
                         output = output + '\n' + adding
-                        rows = [str(err.word), -1, -1, '', link, text[3:-2]]
+                        rows = [str(err.word), -1, -1, '', link, text]
                         result.loc[len(result)] = rows
         # Counting for duplicated misspellings
         for rowdata in result.values:
@@ -176,7 +190,7 @@ if __name__ == '__main__':
         # Getting values from Wikipedia
         print ('\n + Finding words misspelled on Wikipedia')
         for rowdata in result.values:
-            time.sleep(0.2)
+            #time.sleep(0.2)
             if rowdata[1] < 3 and rowdata[2] == -1:	# rowdata[2]: wiki 
                 tu = 'https://en.wikipedia.org/w/index.php?search=' + rowdata[0]
                 req = Request(tu)
@@ -187,9 +201,9 @@ if __name__ == '__main__':
                     result.loc[result['misspelling'] == rowdata[0], 'wiki'] = False
                     #result.loc[result['misspelling'] == rowdata[0], 'wikiurl'] = browser.current_url
                     result.loc[result['misspelling'] == rowdata[0], 'wikiurl'] = targetpage.geturl()
-                    messages = '[ERR] ' + rowdata[0] + ': Not found';
-                    output = output + '\n' + messages
-                    messages = messages + ' @ <a href="' + targetpage.geturl() + '" target="_blank">' + targetpage.geturl() + '</a>';
+                    messages = '[ERR] ' + rowdata[0] + ': Not found'
+                    output = output + '\n' + messages + '\n + Link: ' + targetpage.geturl()
+                    messages = messages + ' @ <a href="' + targetpage.geturl() + '" target="_blank">' + targetpage.geturl() + '</a>'
                     print (messages)
                 else:
                     result.loc[result['misspelling'] == rowdata[0], 'wiki'] = True
@@ -205,6 +219,7 @@ if __name__ == '__main__':
         result.to_csv(outputname, header=True, index=True)
         #print (result.to_string())
         #output = output + '\n' + result.to_string()
+
     else:
         messages = '[ERR] Initialization faliure'
         print (messages)
