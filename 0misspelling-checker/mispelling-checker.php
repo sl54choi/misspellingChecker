@@ -199,9 +199,11 @@ function wp_misspelling_checker() {
 			$descriptorspec = array(
 				0 => array("pipe", "r"),
 				1 => array("pipe", "w"),
-				2 => array("file", "./result/error-output.txt", "a"),
+				2 => array("file", "./result/error-output.log", "a"),
 			);
-			$process = proc_open('/usr/bin/sudo /var/www/html/wp-content/plugins/0misspelling-checker/includes/start.sh', $descriptorspec, $pipes);
+			$pluginpath = plugin_dir_path(__FILE__);
+			$command = '/usr/bin/sudo '.$pluginpath.'includes/start.sh '.$pluginpath.'includes/misspelling.py "" output.csv output.log '.$target_url;
+			$process = proc_open($command, $descriptorspec, $pipes);
 			echo '<h3>Result</h3>';
 			if (is_resource($process)) {
 				fwrite($pipes[0]);
