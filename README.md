@@ -46,5 +46,5 @@ cd /var/www/html/result
 * Kubernetes : Docker Container Orchestration
   * Docker for running python codes with PHP
     * e.g.: https://hub.docker.com/r/electop/cartographer_ros/
-    * https://www.popit.kr/kubernetes-introduction/
+    * 구글이 만든 Docker Container Orchestration 툴, Kubernetes 소개: https://www.popit.kr/kubernetes-introduction/
 ---------------------------------------------------
