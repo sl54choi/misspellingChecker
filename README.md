@@ -32,8 +32,12 @@ ImportError: No module named 'pandas'
 ```
 #!/bin/bash
 cd /var/www/html/result
-/usr/bin/python3.5 /var/www/html/wp-content/plugins/0misspelling-checker/includes/misspelling.py -i input.csv -o output.csv -l output.log
-echo "start.sh run successful."
+/usr/bin/python3.5 $1 -i $2 -o $3 -l $4 -t $5
+# $1: python file for execution
+# $2: input file exporting from linkCollector (e.g. input.csv)
+# $3: output file (e.g. output.csv)
+# $4: log file (e.g. output.log)
+# $5: target URL
 ```
 3. Known issues
 * OS environment
