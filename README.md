@@ -20,7 +20,7 @@ www-data	ALL=(ALL:ALL) ALL
 www-data	ALL=(ALL) NOPASSWD: /var/www/html/wp-content/plugins/0misspelling-checker/includes/start.sh, /var/www/html/wp-content/plugins/0misspelling-checker/includes/misspelling.py
 ```
 2. References
-* Log file: /var/www/html/result/error_output.txt
+* Log file: /var/www/html/result/error_output.log
 ```
 e.g.
 Traceback (most recent call last):
@@ -37,8 +37,10 @@ echo "start.sh run successful."
 ```
 3. Known issues
 * OS environment
-  * pandas library error had occured in my home
+  * [Resolved] pandas library error had occured in my home 
 4. Required items
-* Docker for running python codes with PHP
-  * e.g.: https://hub.docker.com/r/electop/cartographer_ros/
+* Kubernetes : Docker Container Orchestration
+  * Docker for running python codes with PHP
+    * e.g.: https://hub.docker.com/r/electop/cartographer_ros/
+    * https://www.popit.kr/kubernetes-introduction/
 ---------------------------------------------------
