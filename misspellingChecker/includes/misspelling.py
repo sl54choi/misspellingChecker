@@ -10,6 +10,7 @@ from enchant import DictWithPWL
 from urllib.request import urlopen
 from urllib.request import Request
 from pandas import Series, DataFrame
+#import pattern.en import singularize
 from enchant.checker import SpellChecker
 from urllib.error import URLError, HTTPError
 
@@ -27,6 +28,26 @@ def cleanhtml(text):
     cleantext = re.sub(cleanr, ' ', text)
 
     return cleantext
+
+'''
+def checkplural(word):
+
+    text = singularize(word)
+
+    return text
+'''
+
+def removeUnicode(text):
+
+    mtext = ''
+    words = text.split(' ')
+    for word in words:
+        #print ('before: ', word)
+        if word.find('\\') < 0:
+            mtext = mtext + ' ' + word
+            #print ('after: ', word)
+
+    return mtext
 
 def unescape(text):
 
@@ -166,17 +187,21 @@ if __name__ == '__main__':
                 print ('\n + Link: %s' %link)
                 if type(text) != 'unicode':
                     mtext = unicode2ascii(str(text.encode('utf-8')))
-                    output = output + '\n + ' + mtext
-                    print (' + Content: %s' %mtext)
+                    #mtext = str(text)
+                    output = output + '\n + ' + mtext[1:]
+                    print (' ++ Content: %s' %mtext[1:])
+                    mtext = removeUnicode(mtext[1:])
+                    chkr.set_text(mtext)
                 else:
                     output = output + '\n + ' + text
                     print (' + Content: %s' %(text))
-                chkr.set_text(text)
+                    chkr.set_text(text)
                 for err in chkr:
                     if excludedwords.find(str(err.word)) < 0:
-                        err.word = unicode2ascii(str(err.word.encode('utf-8')))[2:-1]
+                        #err.word = unicode2ascii(str(err.word.encode('utf-8')))[2:-1]
                         if err.word.find('\\') >= 0:
                             continue
+                        #err.word = checkplural(err.word)
                         count = count + 1
                         adding = '[ERR] (' + str(count) + ') ' + str(err.word)
                         print ('%s' %adding)
