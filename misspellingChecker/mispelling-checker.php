@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: 0Misspelling Checker
+Plugin Name: Misspelling Checker
 Plugin URI: http://localhost/
-Description: This is a plugin to check misspelling on the site. 
+Description: This is a wordpress plugin to check misspelling on the site. 
 Author: Juhwan Yoo
 Version: 1.0
 Author URI: http://localhost/
