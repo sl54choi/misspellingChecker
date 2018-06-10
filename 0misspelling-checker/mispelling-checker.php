@@ -8,7 +8,7 @@ Version: 1.0
 Author URI: http://localhost/
 */
 global $jal_db_version;
-$jal_db_version = '1.0';
+$jal_db_version = '1.1';
 register_activation_hook (__FILE__, 'jal_misspelling_install');
 function jal_misspelling_install() {
 	global $wpdb;
@@ -25,7 +25,7 @@ function jal_misspelling_install() {
 		department_name tinytext NOT NULL,
 		target_url varchar(55) DEFAULT '' NOT NULL,
 		error_number mediumint(9) NOT NULL,
-		result_url varchar(55) DEFAULT '' NOT NULL,
+		result_url tinytext NOT NULL,
 		PRIMARY KEY  (id)
 	) $charset_collate;";
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
@@ -45,7 +45,7 @@ function jal_misspelling_install() {
 			department_name tinytext NOT NULL,
 			target_url varchar(55) DEFAULT '' NOT NULL,
 			error_number mediumint(9) NOT NULL,
-			result_url varchar(55) DEFAULT '' NOT NULL,
+			result_url tinytext NOT NULL,
 			PRIMARY KEY  (id)
 		);";
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
@@ -71,6 +71,10 @@ function fwds_misspelling_styles() {
 	wp_register_style('style', plugins_url('css/style.css', __FILE__));
 	wp_enqueue_style('style');
 }
+add_action('admin_enqueue_scripts', 'load_wp_media_files');
+function load_wp_media_files() {
+	wp_enqueue_media();
+}
 add_shortcode('my_misspelling', 'wp_misspelling_checker');
 function wp_misspelling_checker() {
 	if ( is_user_logged_in() ) {
@@ -92,13 +96,6 @@ function wp_misspelling_checker() {
 			if ($i !== 3) $distinguish_name .= ' > ';
 			$distinguish_name .= $strTok[$i];
 		}
-/*
-		$html = '
-<form action='.plugins_url('includes/wpdb-update.php', __FILE__).' method="post">
-</form>
-';
-*/
-		$button = 'Please wait';
 		$html = '
 <form action="#v_form" method="post" id="v_form">
 <h3>Required data</h3>
@@ -178,31 +175,18 @@ function wp_misspelling_checker() {
 <td>'.$user_information.'</td></tr>
 </table>
 ';
-			global $wpdb;
 			$count = 0;
-			$table_name = $wpdb->prefix . 'misspelling';
-			$wpdb->insert( 
-				$table_name, 
-				array( 
-					'time' => $time,
-					'knox_id' => $knox_id,
-					'email' => $email,
-					'full_name' => $full_name,
-					'employee_number' => $employee_number,
-					'department_name' => $department_name,
-					'user_information' => $user_information,
-					'target_url' => $target_url,
-				)
-			);
+			$pluginpath = plugin_dir_path(__FILE__);
+			$filename = str_replace(' ', '_', str_replace(':', '-', $time)).'_'.str_replace('/', '_', str_replace('://', '_', $target_url));
+			$filepath = home_url()."/result/".$filename.".csv";
 			$html .= '<h6>Your request was successfully submitted and completed. Thanks!!</h6>';
 			// $html .= '<meta http-equiv="refresh" content="3; url='.get_permalink().'">';
+			$command = '/usr/bin/sudo '.$pluginpath.'includes/start.sh '.$pluginpath.'includes/misspelling.py "" '.$filename.'.csv '.$filename.'.log '.$target_url;
 			$descriptorspec = array(
 				0 => array("pipe", "r"),
 				1 => array("pipe", "w"),
 				2 => array("file", "./result/error-output.log", "a"),
 			);
-			$pluginpath = plugin_dir_path(__FILE__);
-			$command = '/usr/bin/sudo '.$pluginpath.'includes/start.sh '.$pluginpath.'includes/misspelling.py "" output.csv output.log '.$target_url;
 			$process = proc_open($command, $descriptorspec, $pipes);
 			echo '<h3>Result</h3>';
 			if (is_resource($process)) {
@@ -217,17 +201,39 @@ function wp_misspelling_checker() {
 				fclose($pipes[1]);
 				$return_value = proc_close($process);
 				$message = "[END] Command returned $return_value";
+				$message .= "<br>+ Please check "."<a href=\"".$filepath."\" target=\"_blank_\"> this result file </a>"."for details.";
 				if ($count == 0) {
-					$message .= ": There is no error.";
+					$message .= "<br>+ There is no error ";
 				}
 				else if ($count == 1) {
-					$message .= ": There is $count error.";
+					$message .= "<br>+ There is $count error ";
 				}
 				else {
-					$message .= ": There are $count errors.";
+					$message .= "<br>+ There are $count errors ";
 				}
+				$message .= "@ <a href=\"".$target_url."\" target=\"_blank_\">".$target_url."</a>";
 				echo nl2br($message);
 			}
+			else {
+				$filepath = "";
+			}
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'misspelling';
+			$wpdb->insert( 
+				$table_name, 
+				array( 
+					'time' => $time,
+					'knox_id' => $knox_id,
+					'email' => $email,
+					'full_name' => $full_name,
+					'employee_number' => $employee_number,
+					'department_name' => $department_name,
+					'user_information' => $user_information,
+					'target_url' => $target_url,
+					'error_number' => $count,
+					'result_url' => $filepath,
+				)
+			);
 		}
 		// if the form is submitted but the name is empty
 		if ( isset( $_POST["submit_form"] ) && $_POST["target_url"] == "" ) {
