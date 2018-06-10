@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: Misspelling Checker
+Plugin Name: 0Misspelling Checker
 Plugin URI: http://localhost/
-Description: This is a wordpress plugin to check misspelling on the site. 
+Description: This is a plugin to check misspelling on the site. 
 Author: Juhwan Yoo
 Version: 1.0
 Author URI: http://localhost/
@@ -178,10 +178,12 @@ function wp_misspelling_checker() {
 			$count = 0;
 			$pluginpath = plugin_dir_path(__FILE__);
 			$filename = str_replace(' ', '_', str_replace(':', '-', $time)).'_'.str_replace('/', '_', str_replace('://', '_', $target_url));
-			$filepath = home_url()."/result/".$filename.".csv";
+			$filepath = home_url()."/result/".$filename;
+			$logpath = $filepath.".log";
+			$filepath = $filepath.".csv";
 			$html .= '<h6>Your request was successfully submitted and completed. Thanks!!</h6>';
 			// $html .= '<meta http-equiv="refresh" content="3; url='.get_permalink().'">';
-			$command = '/usr/bin/sudo '.$pluginpath.'includes/start.sh '.$pluginpath.'includes/misspelling.py "" '.$filename.'.csv '.$filename.'.log '.$target_url;
+			$command = '/usr/bin/sudo '.$pluginpath.'includes/start.sh "'.$pluginpath.'includes/misspelling.py" "" "'.$filename.'.csv" "'.$filename.'.log" "'.$target_url.'"';
 			$descriptorspec = array(
 				0 => array("pipe", "r"),
 				1 => array("pipe", "w"),
@@ -201,7 +203,8 @@ function wp_misspelling_checker() {
 				fclose($pipes[1]);
 				$return_value = proc_close($process);
 				$message = "[END] Command returned $return_value";
-				$message .= "<br>+ Please check "."<a href=\"".$filepath."\" target=\"_blank_\"> this result file </a>"."for details.";
+				//$message .= "<br>+ Please check "."<a href=\"".$filepath."\" target=\"_blank_\">the result file</a>"." for details.";
+				$message .= "<br>+ Please check the "."<a href=\"".$filepath."\" target=\"_blank_\">result file</a>"." and "."<a href=\"".$logpath."\" target=\"_blank_\">log file</a>"." for details.";
 				if ($count == 0) {
 					$message .= "<br>+ There is no error ";
 				}
