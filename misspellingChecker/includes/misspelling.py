@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 __author__ = 'electopx@gmail.com'
 
@@ -15,7 +14,8 @@ from enchant.checker import SpellChecker
 from urllib.error import URLError, HTTPError
 
 inputfile = False
-inputname, outputname, logname, targeturl = '', 'output.csv', 'output.log', ''
+inputname, outputname, logname, targeturl = '', '', '', ''
+
 # The most common file types and file extensions
 excludedfiles = '.aif.cda.mid.mp3.mpa.ogg.wav.wma.wpl.7z.arj.deb.pkg.rar.rpm.tar.z.zip.bin.dmg.iso.toa.vcd.csv.dat.db.log.mdb.sav.sql.tar.xml.apk.bat.bin.cgi.com.exe.gad.jar.py.wsf.fnt.fon.otf.ttf.ai.bmp.gif.ico.jpe.png.ps.psd.svg.tif.asp.cer.cfm.cgi.js.jsp.par.php.py.rss.key.odp.pps.ppt.ppt.c.cla.cpp.cs.h.jav.sh.swi.vb.ods.xlr.xls.xls.bak.cab.cfg.cpl.cur.dll.dmp.drv.icn.ico.ini.lnk.msi.sys.tmp.3g2.3gp.avi.flv.h26.m4v.mkv.mov.mp4.mpg.rm.swf.vob.wmv.doc.odt.pdf.rtf.tex.txt.wks.wpd'
 #useragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.117 Safari/537.36"
@@ -135,9 +135,9 @@ if __name__ == '__main__':
     chkr = SpellChecker("en_US")
     result = DataFrame(columns=('misspelling', 'duplication', 'wiki', 'wikiurl', 'url', 'sentence' ))
     excludedwords = 'www,href,http,https,html,br'
-    f = open(logname, 'w')
 
     if init():
+        f = open(logname, 'w')
         df = DataFrame(columns=('link', 'code'))
         if inputfile:
             df = pd.read_csv(inputname)
@@ -174,6 +174,9 @@ if __name__ == '__main__':
                 chkr.set_text(text)
                 for err in chkr:
                     if excludedwords.find(str(err.word)) < 0:
+                        err.word = unicode2ascii(str(err.word.encode('utf-8')))[2:-1]
+                        if err.word.find('\\') >= 0:
+                            continue
                         count = count + 1
                         adding = '[ERR] (' + str(count) + ') ' + str(err.word)
                         print ('%s' %adding)
@@ -191,7 +194,10 @@ if __name__ == '__main__':
         print ('\n + Finding words misspelled on Wikipedia')
         for rowdata in result.values:
             #time.sleep(0.2)
-            if rowdata[1] < 3 and rowdata[2] == -1:	# rowdata[2]: wiki 
+            rowdata[0] = unicode2ascii(str(rowdata[0].encode('utf-8')))[2:-1]
+            if rowdata[0].find('\\') >= 0:
+                continue
+            if rowdata[1] < 3 and rowdata[2] == -1:	# rowdata[2]: wiki
                 tu = 'https://en.wikipedia.org/w/index.php?search=' + rowdata[0]
                 req = Request(tu)
                 req.add_header('User-Agent', useragent)
@@ -219,11 +225,9 @@ if __name__ == '__main__':
         result.to_csv(outputname, header=True, index=True)
         #print (result.to_string())
         #output = output + '\n' + result.to_string()
-
+        f.write(output)
+        f.close()
     else:
         messages = '[ERR] Initialization faliure'
         print (messages)
         output = output + '\n' + messages
-
-    f.write(output)
-    f.close()
