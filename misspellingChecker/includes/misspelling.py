@@ -5,7 +5,6 @@ import re
 import sys
 import time
 import pandas as pd
-from bs4 import BeautifulSoup
 from enchant import DictWithPWL
 from urllib.request import urlopen
 from urllib.request import Request
@@ -13,6 +12,7 @@ from pandas import Series, DataFrame
 #import pattern.en import singularize
 from enchant.checker import SpellChecker
 from urllib.error import URLError, HTTPError
+from bs4 import BeautifulSoup, NavigableString
 
 inputfile = False
 inputname, outputname, logname, targeturl = '', '', '', ''
@@ -31,9 +31,7 @@ def cleanhtml(text):
 
 '''
 def checkplural(word):
-
     text = singularize(word)
-
     return text
 '''
 
@@ -154,6 +152,9 @@ if __name__ == '__main__':
     count = 0
     text, output = '', ''
     chkr = SpellChecker("en_US")
+    invalid_tags = ['b', 'i', 'u', 'strong', 'em', 'cite', 'small']
+    #valid_tags = ['article', 'p', 'span']
+    valid_tags = ['p', 'span']
     result = DataFrame(columns=('misspelling', 'duplication', 'wiki', 'wikiurl', 'url', 'sentence' ))
     excludedwords = 'www,href,http,https,html,br'
 
@@ -166,28 +167,44 @@ if __name__ == '__main__':
         else:
             rows = {'link': targeturl, 'code': -1}
             df = df.append(rows, ignore_index=True)
+        if df['link'][0].find('github') >= 0:
+            valid_tags = ['article']
         for link in df['link']:
+            if link[len(link) - 1] == '/':
+                link = link[:-1]
             tokens = link.split('/')
             lasttoken = tokens[len(tokens) - 1]
-            if link.find('?') >= 0 or lasttoken.find('#') >= 0 or lasttoken.find('%') >= 0 or excludedfiles.find(lasttoken[-4:]) >= 0:
+            if link.find('?') >= 0 or lasttoken.find('#') >= 0 or lasttoken.find('%') >= 0 or (len(tokens) > 3 and excludedfiles.find(lasttoken[-4:]) >= 0):
                 continue
+            #page = urlopen(link)
             (status, page) = getCode(link)
             if status == False:
                 continue
-            #page = urlopen(link)
-            soup = BeautifulSoup(page, 'lxml')
+
+            with urlopen(link) as response:
+                html = response.read().decode("utf-8")
+            if link.find('github') >= 0:
+                body = re.search('<article.*/article>', html, re.I|re.S)
+                body = body.group()
+            else:
+                body = re.search('<body.*/body>', html, re.I|re.S)
+                body = body.group()
+                body = body.replace('<span', '|<span').replace('span>', 'span>|')
+            body = re.sub('<script.*?>.*?</script>', '', body, 0, re.I|re.S)
+            body = body.replace('<p', '|<p').replace('p>', 'p>|')
+            body = re.sub('<.+?>', '', body, 0, re.I|re.S)
+            body = " ".join(body.split())
+            tokens = body.split('|')
+            tokens = [x.strip() for x in tokens if x.strip()]
+            #body = "\n".join(tokens)
+            #print (body)
+
             output = output + '\n* ' + link
-            sentences = soup.findAll({'p', 'article', 'span'})
-            for sentence in sentences:
-                #text = unicode2ascii(unescape(" ".join(cleanhtml(str(text.encode('utf8')))).split()))
-                #text = sentence.get_text(' ', strip=True).encode('utf-8').strip().decode('utf-8')
-                text = sentence.get_text(' ', strip=True)
-                if len(text) == 0:
-                    continue
+            for token in tokens:
+                text = unescape(token)
                 print ('\n + Link: %s' %link)
                 if type(text) != 'unicode':
                     mtext = unicode2ascii(str(text.encode('utf-8')))
-                    #mtext = str(text)
                     output = output + '\n + ' + mtext[1:]
                     print (' ++ Content: %s' %mtext[1:])
                     mtext = removeUnicode(mtext[1:])
