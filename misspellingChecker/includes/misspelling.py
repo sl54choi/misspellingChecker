@@ -190,18 +190,19 @@ if __name__ == '__main__':
                 body = re.search('<body.*/body>', html, re.I|re.S)
                 body = body.group()
                 body = body.replace('<span', '|<span').replace('span>', 'span>|')
-            body = re.sub('<script.*?>.*?</script>', '', body, 0, re.I|re.S)
             body = body.replace('<p', '|<p').replace('p>', 'p>|')
-            body = re.sub('<.+?>', '', body, 0, re.I|re.S)
-            body = " ".join(body.split())
+            body = re.sub('<script.*?>.*?</script>', ' ', body, 0, re.I|re.S)
+            body = re.sub('<.+?>', ' ', body, 0, re.I|re.S)
+            body = unescape(" ".join(body.split()))
             tokens = body.split('|')
             tokens = [x.strip() for x in tokens if x.strip()]
-            #body = "\n".join(tokens)
+            #print (tokens)
+            body = "\n".join(tokens)
             #print (body)
 
             output = output + '\n* ' + link
             for token in tokens:
-                text = unescape(token)
+                text = token
                 print ('\n + Link: %s' %link)
                 if type(text) != 'unicode':
                     mtext = unicode2ascii(str(text.encode('utf-8')))
