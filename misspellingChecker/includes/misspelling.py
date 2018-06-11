@@ -22,7 +22,7 @@ excludedfiles = '.aif.cda.mid.mp3.mpa.ogg.wav.wma.wpl.7z.arj.deb.pkg.rar.rpm.tar
 #useragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.117 Safari/537.36"
 useragent = 'user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.117 Safari/537.36'
 
-def cleanhtml(text):
+def cleanHtml(text):
 
     cleanr = re.compile('<.*?>')
     cleantext = re.sub(cleanr, ' ', text)
@@ -62,7 +62,101 @@ def unicode2ascii(text):
 
     text = text.replace('\\xe2\\x80\\x99', "'").\
     replace('\\xc2\\xa0', ' ').\
-    replace('\\xc3\\xa9', 'e').\
+    replace('\\xc2\\xa1', '¡').\
+    replace('\\xc2\\xa2', '¢').\
+    replace('\\xc2\\xa3', '£').\
+    replace('\\xc2\\xa4', '¤').\
+    replace('\\xc2\\xa5', '¥').\
+    replace('\\xc2\\xa6', '¦').\
+    replace('\\xc2\\xa7', '§').\
+    replace('\\xc2\\xa8', '¨').\
+    replace('\\xc2\\xa9', '©').\
+    replace('\\xc2\\xaa', 'ª').\
+    replace('\\xc2\\xab', '«').\
+    replace('\\xc2\\xac', '¬').\
+    replace('\\xc2\\xad', ' ').\
+    replace('\\xc2\\xae', '®').\
+    replace('\\xc2\\xaf', '¯').\
+    replace('\\xc2\\xb0', '°').\
+    replace('\\xc2\\xb1', '±').\
+    replace('\\xc2\\xb2', '²').\
+    replace('\\xc2\\xb3', '³').\
+    replace('\\xc2\\xb4', '´').\
+    replace('\\xc2\\xb5', 'µ').\
+    replace('\\xc2\\xb6', '¶').\
+    replace('\\xc2\\xb7', '·').\
+    replace('\\xc2\\xb8', '¸').\
+    replace('\\xc2\\xb9', '¹').\
+    replace('\\xc2\\xba', 'º').\
+    replace('\\xc2\\xbb', '»').\
+    replace('\\xc2\\xbc', '¼').\
+    replace('\\xc2\\xbd', '½').\
+    replace('\\xc2\\xbe', '¾').\
+    replace('\\xc2\\xbf', '¿').\
+    replace('\\xc3\\x80', 'À').\
+    replace('\\xc3\\x81', 'Á').\
+    replace('\\xc3\\x82', 'Â').\
+    replace('\\xc3\\x83', 'Ã').\
+    replace('\\xc3\\x84', 'Ä').\
+    replace('\\xc3\\x85', 'Å').\
+    replace('\\xc3\\x86', 'Æ').\
+    replace('\\xc3\\x87', 'Ç').\
+    replace('\\xc3\\x88', 'È').\
+    replace('\\xc3\\x89', 'É').\
+    replace('\\xc3\\x8a', 'Ê').\
+    replace('\\xc3\\x8b', 'Ë').\
+    replace('\\xc3\\x8c', 'Ì').\
+    replace('\\xc3\\x8d', 'Í').\
+    replace('\\xc3\\x8e', 'Î').\
+    replace('\\xc3\\x8f', 'Ï').\
+    replace('\\xc3\\x90', 'Ð').\
+    replace('\\xc3\\x91', 'Ñ').\
+    replace('\\xc3\\x92', 'Ò').\
+    replace('\\xc3\\x93', 'Ó').\
+    replace('\\xc3\\x94', 'Ô').\
+    replace('\\xc3\\x95', 'Õ').\
+    replace('\\xc3\\x96', 'Ö').\
+    replace('\\xc3\\x97', '×').\
+    replace('\\xc3\\x98', 'Ø').\
+    replace('\\xc3\\x99', 'Ù').\
+    replace('\\xc3\\x9a', 'Ú').\
+    replace('\\xc3\\x9b', 'Û').\
+    replace('\\xc3\\x9c', 'Ü').\
+    replace('\\xc3\\x9d', 'Ý').\
+    replace('\\xc3\\x9e', 'Þ').\
+    replace('\\xc3\\x9f', 'ß').\
+    replace('\\xc3\\xa0', 'à').\
+    replace('\\xc3\\xa1', 'á').\
+    replace('\\xc3\\xa2', 'â').\
+    replace('\\xc3\\xa3', 'ã').\
+    replace('\\xc3\\xa4', 'ä').\
+    replace('\\xc3\\xa5', 'å').\
+    replace('\\xc3\\xa6', 'æ').\
+    replace('\\xc3\\xa7', 'ç').\
+    replace('\\xc3\\xa8', 'è').\
+    replace('\\xc3\\xa9', 'é').\
+    replace('\\xc3\\xaa', 'ê').\
+    replace('\\xc3\\xab', 'ë').\
+    replace('\\xc3\\xac', 'ì').\
+    replace('\\xc3\\xad', 'í').\
+    replace('\\xc3\\xae', 'î').\
+    replace('\\xc3\\xaf', 'ï').\
+    replace('\\xc3\\xb0', 'ð').\
+    replace('\\xc3\\xb1', 'ñ').\
+    replace('\\xc3\\xb2', 'ò').\
+    replace('\\xc3\\xb3', 'ó').\
+    replace('\\xc3\\xb4', 'ô').\
+    replace('\\xc3\\xb5', 'õ').\
+    replace('\\xc3\\xb6', 'ö').\
+    replace('\\xc3\\xb7', '÷').\
+    replace('\\xc3\\xb8', 'ø').\
+    replace('\\xc3\\xb9', 'ù').\
+    replace('\\xc3\\xba', 'ú').\
+    replace('\\xc3\\xbb', 'û').\
+    replace('\\xc3\\xbc', 'ü').\
+    replace('\\xc3\\xbd', 'ý').\
+    replace('\\xc3\\xbe', 'þ').\
+    replace('\\xc3\\xbf', 'ÿ').\
     replace('\\xe2\\x80\\x90', '-').\
     replace('\\xe2\\x80\\x91', '-').\
     replace('\\xe2\\x80\\x92', '-').\
@@ -151,12 +245,11 @@ if __name__ == '__main__':
 
     count = 0
     text, output = '', ''
-    chkr = SpellChecker("en_US")
-    invalid_tags = ['b', 'i', 'u', 'strong', 'em', 'cite', 'small']
-    #valid_tags = ['article', 'p', 'span']
     valid_tags = ['p', 'span']
-    result = DataFrame(columns=('misspelling', 'duplication', 'wiki', 'wikiurl', 'url', 'sentence' ))
+    chkr = SpellChecker("en_US")
     excludedwords = 'www,href,http,https,html,br'
+    invalid_tags = ['b', 'i', 'u', 'strong', 'em', 'cite', 'small']
+    result = DataFrame(columns=('misspelling', 'duplication', 'wiki', 'wikiurl', 'url', 'sentence' ))
 
     if init():
         f = open(logname, 'w')
@@ -180,7 +273,7 @@ if __name__ == '__main__':
             (status, page) = getCode(link)
             if status == False:
                 continue
-
+            # Getting contents with re library from html file
             with urlopen(link) as response:
                 html = response.read().decode("utf-8")
             if link.find('github') >= 0:
@@ -196,10 +289,9 @@ if __name__ == '__main__':
             body = unescape(" ".join(body.split()))
             tokens = body.split('|')
             tokens = [x.strip() for x in tokens if x.strip()]
-            #print (tokens)
             body = "\n".join(tokens)
             #print (body)
-
+            #print (tokens)
             output = output + '\n* ' + link
             for token in tokens:
                 text = token
@@ -271,6 +363,10 @@ if __name__ == '__main__':
         f.write(output)
         f.close()
     else:
+        f = open(logname, 'w')
         messages = '[ERR] Initialization faliure'
         print (messages)
         output = output + '\n' + messages
+        f.write(output)
+        f.close()
+
