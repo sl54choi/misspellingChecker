@@ -128,8 +128,17 @@ function wp_misspelling_checker() {
 <td align="center"><label for="user_information">user information</label></td>
 <td><input type="text" width="100%" name="user_information" id="user_information" value="'.$current_user->mo_ldap_local_custom_attribute_displayname.'" /></td></tr>
 </table>
-<input type="submit" name="submit_form" onClick="this.style.visibility=\'hidden\'" value="submit" /><br>
+<div align="center" id="loading2" style="display:none;">Misspelling checking is in progress.<img src="/images/Preloader_7.gif" alt="" /></div>
+<input type="submit" id="submit" name="submit_form" onClick="this.style.visibility=\'hidden\'" value="submit" /><br>
 </form>
+<script type="text/javascript">
+(function (d) {
+    d.getElementById("v_form").onsubmit = function () {
+    d.getElementById("submit").style.display = "none";
+    d.getElementById("loading2").style.display = "block";
+  };
+}(document));
+</script>
 ';
 		ob_start();
 		echo $html;
