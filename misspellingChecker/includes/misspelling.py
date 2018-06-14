@@ -47,19 +47,6 @@ def removeUnicode(text):
 
     return mtext
 
-def removeInvalidTag(text):
-
-    mtext = text
-    mtext.replace('<b>', '').replace('</b>', '').\
-    replace('<i>', '').replace('</i>', '').\
-    replace('<u>', '').replace('</u>', '').\
-    replace('<strong>', '').replace('</strong>', '').\
-    replace('<em>', '').replace('</em>', '').\
-    replace('<cite>', '').replace('</cite>', '').\
-    replace('<small>', '').replace('</small>', '')
-
-    return mtext
-
 def unescape(text):
 
     text = text.replace('&amp;', '&').\
@@ -350,7 +337,7 @@ if __name__ == '__main__':
             tokens = [x.strip() for x in tokens if x.strip()]
             tokens[0] = tokens[0][2:]
             body = "\n".join(tokens)
-            print (body)
+            #print (body)
             #print (tokens)
             output = output + '\n* ' + link
             for token in tokens:
