@@ -47,4 +47,5 @@ cd /var/www/html/result
   * Docker for running python codes with PHP
     * e.g.: https://hub.docker.com/r/electop/cartographer_ros/
     * 구글이 만든 Docker Container Orchestration 툴, Kubernetes 소개: https://www.popit.kr/kubernetes-introduction/
+    * dropznejs-wp-rest-api.js : https://gist.github.com/soderlind/38bb3abe89f1fc417827
 ---------------------------------------------------
