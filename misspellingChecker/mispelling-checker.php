@@ -6,6 +6,7 @@ Description: This is a plugin to check misspelling on the site.
 Author: Juhwan Yoo
 Version: 1.0
 Author URI: http://localhost/
+License: GPL
 */
 global $jal_db_version;
 $jal_db_version = '1.1';
